@@ -26,10 +26,8 @@ namespace HUGradesGetter
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow
-    {   //This is so badly implemented wastes LOTS of resources.
+    {   //This is so badly implemented, uses LOTS of rams.
         //TODO: Fix getting the first rows while parsing departments.
-        //TODO: Fix tasks automatically cancelling when too many students.
-
 
         private CancellationTokenSource cts;
 
@@ -152,6 +150,7 @@ namespace HUGradesGetter
         }
 
         private static Task<Dto.Student>[] AllTasks = new Task<Dto.Student>[0];
+        private static List<Task> tasks = new List<Task>();
         private static List<Dto.Student> Students = new List<Dto.Student>();
         private (int first, int last) ids;
         private async void cmb_deps_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -173,32 +172,35 @@ namespace HUGradesGetter
 
             lbl_status.Content = "Status: Parsing IDs...";
 
-            //Append all tasks to the list.
-            AllTasks = new Task<Dto.Student>[ids.last - ids.first + 1];
-            for (int i = 0; i < AllTasks.Length; i++)
-                AllTasks[i] = ParseStudentGrades.ParseAsync(entity.Link, i + ids.first, cts.Token);
-
-            //Calculate work amount per thread;
-            int amountPerThread = ((ids.last - ids.first) / Environment.ProcessorCount);
-            if (amountPerThread == 0) //Incase the processor count is higher than students count;
-                AddStudents(new ThreadParameter(ids.first, ids.last, -1));
-            else
+            //var tasks = new List<Task>();
+            for (int i = ids.first; i <= ids.last; i++)
             {
-                //Start threads to work.
-                for (int i = 0; i < Environment.ProcessorCount; i++)
+                tasks.Add(ParseStudentGrades.ParseAsync(entity.Link, i, cts.Token).ContinueWith(t =>
                 {
-                    var p = new ThreadParameter(ids.first + (i * amountPerThread + 1), ids.first + ((i + 1) * amountPerThread), i);
-                    if (i == 0)
-                        p.Start = ids.first;
-                    if (i == Environment.ProcessorCount - 1)
+                    Dispatcher.Invoke(() =>
                     {
-                        p.End = ids.last;
-                    }
-                    new Thread(AddStudents).Start(p);
-                }
+                        if (t != null)
+                        {
+                            listview_students.Items.Add(t.Result);
+                            Students.Add(t.Result);
+                        }
+                        lbl_count.Content = $"{listview_students.Items.Count}/{(ids.last - ids.first + 1)}";
+                    });
+                }));
+                await WaitList(tasks, 30);
             }
-            await Task.WhenAll(AllTasks);
+
+            await Task.WhenAll(tasks);
             lbl_status.Content = "Status: Completed.";
+        }
+
+        private async Task WaitList(IList<Task> _tasks, int maxSize)
+        {
+            while (_tasks.Count > maxSize)
+            {
+                var completed = await Task.WhenAny(_tasks).ConfigureAwait(false);
+                _tasks.Remove(completed);
+            }
         }
 
         private void MainGridBlur(bool blur)
