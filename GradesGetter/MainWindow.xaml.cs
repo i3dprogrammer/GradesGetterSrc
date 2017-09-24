@@ -27,7 +27,6 @@ namespace HUGradesGetter
     /// </summary>
     public partial class MainWindow
     {   //This is so badly implemented, uses LOTS of rams.
-        //TODO: Fix getting the first rows while parsing departments.
 
         private CancellationTokenSource cts;
 

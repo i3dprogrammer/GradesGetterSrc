@@ -13,6 +13,8 @@ namespace HUGradesGetter
 {
     class HUOperations
     {
+        private static string[] FixedYears = { "الأولي", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة" };
+
         public static async Task<(int first, int last)> GetFirstAndLastID(string departmentLink)
         {
             int start = 0, end = 0;
@@ -51,7 +53,7 @@ namespace HUGradesGetter
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + ex.Source);
+                throw new Exception(ex.Message + ex.StackTrace);
             }
             return (start, end);
         }
@@ -102,7 +104,7 @@ namespace HUGradesGetter
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + ex.StackTrace);
+                throw new Exception(ex.Message + ex.StackTrace);
             }
             return retList;
         }
@@ -137,27 +139,33 @@ namespace HUGradesGetter
                     var el = node.Descendants("tr").ElementAt(i);
                     if (tdCount == 1)
                         currentType = ParseString(el.InnerText);
-                    else if (tdCount == 2) //TODO fix first years without type..
+                    else
                     {
-                        int hrefCount = el.Descendants().ToList().Where(x => x.Name == "a").Count();
+                        int hrefCount = el.Descendants("td").ElementAt(0).Descendants().ToList().Where(x => x.Name == "a").Count();
                         if (hrefCount == 0) continue;
                         int imgCount = el.Descendants().ToList().Where(x => x.Name == "img").Count();
                         string depLink = el.Descendants("a").ElementAt(0).GetAttributeValue("href", "");
                         string yearName = ParseString(el.Descendants("td").ElementAt(1).InnerText);
+                        if (tdCount != 2)
+                        {
+                            yearName = "الفرقة " + FixedYears[i - 1];
+                            Console.WriteLine(hrefCount);
+                        }
+
                         string depName = currentType + " - " + yearName;
                         if (!depLink.StartsWith("http"))
                             depLink = "http://193.227.34.42/itchelwan/" + depLink;
 
-                        if (hrefCount == 1)
+                        if (hrefCount == 1) //Incase of 1 link but 2 types
                         {
-                            if (imgCount == 2) //Incase of 1 link but (Entzam & Entsab)
+                            if (imgCount == 2) 
                             {
                                 if (depLink.Contains("state=1"))
                                     depName = currentType + " - انتظـام - " + yearName;
                                 else
                                     depName = currentType + " - انتســاب - " + yearName;
                             }
-                        } else if(hrefCount == 2)
+                        } else if(hrefCount == 2) //Incase of 2 links with 2 types.
                         {
                             depName = currentType + " - انتظـام - " + yearName;
                             retList.Add(new Dto.Entity() { Name = depName, Link = depLink });
@@ -166,15 +174,11 @@ namespace HUGradesGetter
                         }
                         retList.Add(new Dto.Entity() { Name = depName, Link = depLink });
                     }
-                    else
-                    {
-                        //Clipboard.SetText(el.OuterHtml);
-                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + ex.GetBaseException());
+                throw new Exception(ex.Message + ex.StackTrace);
             }
             return retList;
         }
