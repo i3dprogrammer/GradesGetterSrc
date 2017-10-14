@@ -270,7 +270,7 @@ namespace HUGradesGetter
 
         private void Label_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            MessageBox.Show("This tool was developed by © 3DProgrammer.\nProject Github Link: \nContact: iahmedmgd715@gmail.com", "About");
+            MessageBox.Show("This tool was developed by © 3DProgrammer.\nProject Github Link: https://github.com/i3dprogrammer/GradesGetterSrc \nContact: iahmedmgd715@gmail.com", "About");
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
