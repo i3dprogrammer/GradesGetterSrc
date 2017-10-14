@@ -1,4 +1,4 @@
-# GradesGetterSrc
+# Helwan Univeristy Grades Getter
 Easily get and sort the students grades from any college in Helwan University.
 
 # Download
