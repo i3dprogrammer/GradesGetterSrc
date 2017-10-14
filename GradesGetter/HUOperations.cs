@@ -57,6 +57,7 @@ namespace HUGradesGetter
             }
             return (start, end);
         }
+
         public static async Task<List<Dto.Entity>> GetHUColleges(string mainWebsiteLink)
         {
             if (!mainWebsiteLink.StartsWith("http://"))
@@ -108,6 +109,7 @@ namespace HUGradesGetter
             }
             return retList;
         }
+
         public static async Task<List<Dto.Entity>> GetCollegeDepartments(Dto.Entity college, int semester, CancellationToken ct)
         {
             var retList = new List<Dto.Entity>();
@@ -158,14 +160,15 @@ namespace HUGradesGetter
 
                         if (hrefCount == 1) //Incase of 1 link but 2 types
                         {
-                            if (imgCount == 2) 
+                            if (imgCount == 2)
                             {
                                 if (depLink.Contains("state=1"))
                                     depName = currentType + " - انتظـام - " + yearName;
                                 else
                                     depName = currentType + " - انتســاب - " + yearName;
                             }
-                        } else if(hrefCount == 2) //Incase of 2 links with 2 types.
+                        }
+                        else if (hrefCount == 2) //Incase of 2 links with 2 types.
                         {
                             depName = currentType + " - انتظـام - " + yearName;
                             retList.Add(new Dto.Entity() { Name = depName, Link = depLink });
@@ -182,6 +185,7 @@ namespace HUGradesGetter
             }
             return retList;
         }
+
         private static string ParseString(string data)
         {
             string k = "";
