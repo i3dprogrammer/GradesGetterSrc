@@ -11,15 +11,9 @@
     <Grid>
         <Grid x:Name="mainGrid">
             <Label Content="College:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-            <ComboBox x:Name="cmb_college" HorizontalAlignment="Left" Margin="87,13,0,0" VerticalAlignment="Top" Width="252" DisplayMemberPath="Name" SelectionChanged="cmb_college_SelectionChanged"/>
-            <Label Content="Semester:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="344,10,0,0"/>
-            <ComboBox x:Name="cmb_sem" HorizontalAlignment="Left" Margin="423,13,0,0" VerticalAlignment="Top" Width="91" SelectionChanged="ComboBox_SelectionChanged">
-                <ComboBoxItem Content="First"/>
-                <ComboBoxItem Content="Second"/>
-                <ComboBoxItem Content="Summer"/>
-            </ComboBox>
-            <Label Content="Departmen:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,45,0,0"/>
-            <ComboBox x:Name="cmb_deps" HorizontalAlignment="Left" Margin="111,49,0,0" VerticalAlignment="Top" Width="402" DisplayMemberPath="Name" SelectionChanged="cmb_deps_SelectionChanged"/>
+            <ComboBox x:Name="cmb_college" HorizontalAlignment="Left" Margin="87,13,0,0" VerticalAlignment="Top" Width="420" DisplayMemberPath="Name" SelectionChanged="cmb_college_SelectionChanged"/>
+            <Label Content="Start ID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,47,0,0"/>
+            <TextBox x:Name="id_start" Width="121" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="87,49,0,0"/>
             <ListView x:Name="listview_students" HorizontalAlignment="Stretch" Height="245" Margin="0,109,0,0" VerticalAlignment="Top" BorderBrush="Black" BorderThickness="1">
                 <ListView.View>
                     <GridView x:Name="gvc">
@@ -43,6 +37,10 @@
                 <Label x:Name="lbl_status" Content="Status: ..." HorizontalAlignment="Left" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0,0,2"/>
             </Grid>
             <Button Content="Export data" HorizontalAlignment="Left" Margin="362,362,0,0" VerticalAlignment="Top" Width="155" Height="31" Click="Button_Click"/>
+            <Label Content="Start ID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,47,0,0"/>
+            <TextBox x:Name="id_end" Width="112" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="270,49,0,0"/>
+            <Button Content="Fetch results" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="387,47,0,0" Width="120" Click="Button_Click_1"/>
+            <Label Content="End ID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="213,47,0,0"/>
         </Grid>
         <Grid x:Name="progressGrid" Visibility="Hidden">
             <Controls:ProgressRing HorizontalAlignment="Center" VerticalAlignment="Center" Height="100" Margin="138,72,151,110" Width="100"/>

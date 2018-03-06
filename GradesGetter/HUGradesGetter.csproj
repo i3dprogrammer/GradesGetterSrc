@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{058300D3-7AC5-40A0-AC3E-414C11877627}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>HUGradesGetter</RootNamespace>
     <AssemblyName>HUGradesGetter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -75,8 +75,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Dto\Entity.cs" />
-    <Compile Include="HUOperations.cs" />
-    <Compile Include="ParseStudentGrades.cs" />
+    <Compile Include="NewSite\ParseStudentGrades.cs" />
+    <Compile Include="NewSite\SiteOperations.cs" />
     <Compile Include="Dto\Student.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -27,7 +27,7 @@ namespace HUGradesGetter
     /// </summary>
     public partial class MainWindow
     {   //This is so badly implemented, uses LOTS of rams.
-
+        //But who gives a fuck? As long as it works, that's fine with me.
         private CancellationTokenSource cts;
 
         public MainWindow()
@@ -37,6 +37,7 @@ namespace HUGradesGetter
 
         private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            //http://app.helwan.edu.eg/Nat_W/Natglist.asp?x_st_settingno=14 Get link from here.
             try
             {
                 if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
@@ -57,7 +58,12 @@ namespace HUGradesGetter
             try
             {
                 MainGridBlur(true);
-                var list = await HUOperations.GetHUColleges("http://193.227.34.42/itchelwan/faculities.asp");
+                //var list = await HUOperations.GetHUColleges("http://193.227.34.42/itchelwan/faculities.asp");
+                var list = new List<Dto.Entity>()
+                {
+                    new Dto.Entity(){Name = "كلية العلوم", Link="http://app.helwan.edu.eg/Nat_W"} //Actually get the colleges instead of this xD?
+                };
+
                 foreach (var item in list)
                 {
                     cmb_college.Items.Add(item);
@@ -72,7 +78,10 @@ namespace HUGradesGetter
 
         private async void AddDeps()
         {
-            if (cmb_college.SelectedIndex == -1 || cmb_sem.SelectedIndex == -1)
+            int dep_id_start = -1, dep_id_end = -1;
+            Int32.TryParse(id_start.Text, out dep_id_start);
+            Int32.TryParse(id_end.Text, out dep_id_end);
+            if (cmb_college.SelectedIndex == -1 || dep_id_end == -1 || dep_id_start == -1)
             {
                 return;
             }
@@ -86,20 +95,10 @@ namespace HUGradesGetter
 
             MainGridBlur(true);
             this.IsEnabled = false;
-            //Console.WriteLine(this.IsEnabled);
-            cmb_deps.Items.Clear();
 
             var entity = (Dto.Entity)cmb_college.SelectedItem;
-            int sem = cmb_sem.SelectedIndex + 1;
-
-            (await HUOperations.GetCollegeDepartments(entity, sem, cts.Token)).ForEach(x => cmb_deps.Items.Add(x));
             this.IsEnabled = true;
             MainGridBlur(false);
-        }
-
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            AddDeps();
         }
 
         private void cmb_college_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -107,78 +106,49 @@ namespace HUGradesGetter
             AddDeps();
         }
 
-
-        private async void AddStudents(object parameter)
-        {
-            //Get data from parameter
-            ThreadParameter par = (ThreadParameter)parameter;
-            int start = par.Start;
-            int end = par.End;
-            int threadCustomId = par.Id + 1;
-
-            Console.WriteLine($"From {start} to {end} #{threadCustomId}");
-
-            Dto.Entity entity = null;
-            Dispatcher.Invoke(() => entity = (Dto.Entity)cmb_deps.SelectedItem);
-
-            for (int id = start; id <= end; id++)
-            {
-                var data = await AllTasks[id - ids.first];
-                Dispatcher.Invoke(() =>
-                {
-                    if (gvc.Columns.Count == 4)
-                    {
-                        foreach (var item in data.Subjects)
-                        {
-                            gvc.Columns.Add(new GridViewColumn()
-                            {
-                                Header = item.Key,
-                                DisplayMemberBinding = new Binding($"Subjects[{item.Key}].Grade"),
-                            });
-                        }
-                    }
-
-                    if (data != null && !listview_students.Items.Contains(data))
-                    {
-                        listview_students.Items.Add(data);
-                        Students.Add(data);
-                    }
-                    lbl_count.Content = $"{listview_students.Items.Count}/{AllTasks.Count()}";
-                });
-            }
-        }
-
         private static Task<Dto.Student>[] AllTasks = new Task<Dto.Student>[0];
         private static List<Task> tasks = new List<Task>();
         private static List<Dto.Student> Students = new List<Dto.Student>();
         private (int first, int last) ids;
-        private async void cmb_deps_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void StartProcess()
         {
-            if (cmb_deps.SelectedIndex == -1)
-                return;
+            ids.first = -1;
+            ids.last = -1;
+            Int32.TryParse(id_start.Text, out ids.first);
+            Int32.TryParse(id_end.Text, out ids.last);
 
-            while (gvc.Columns.Count > 4)
-                gvc.Columns.RemoveAt(4);
+            if (cmb_college.SelectedIndex == -1 || ids.first == -1 || ids.last == -1)
+            {
+                lbl_status.Content = "Status: error occurred!";
+                return;
+            }
+
+            if (cts != null)
+            {
+                cts.Cancel();
+            }
+
+            //// Remove subject columns
+            //while (gvc.Columns.Count > 4)
+            //    gvc.Columns.RemoveAt(4);
+
             listview_students.Items.Clear();
             Students.Clear();
 
-            var entity = (Dto.Entity)cmb_deps.SelectedItem;
+            var entity = (Dto.Entity)cmb_college.SelectedItem;
             cts = new CancellationTokenSource();
-
-            lbl_status.Content = "Status: Getting IDs...";
-            ids = await HUOperations.GetFirstAndLastID(entity.Link);
-            Console.WriteLine(ids.first + " " + ids.last);
 
             lbl_status.Content = "Status: Parsing IDs...";
 
             //var tasks = new List<Task>();
             for (int i = ids.first; i <= ids.last; i++)
             {
-                tasks.Add(ParseStudentGrades.ParseAsync(entity.Link, i, cts.Token).ContinueWith(t =>
+                lbl_status.Content = $"Status: Parsing id {i}";
+                tasks.Add(NewSite.ParseStudentGrades.ParseStudentFromSetting(entity.Link, i, cts.Token).ContinueWith(t =>
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        if (t != null)
+                        if (t != null && t.Result != null)
                         {
                             listview_students.Items.Add(t.Result);
                             Students.Add(t.Result);
@@ -186,7 +156,7 @@ namespace HUGradesGetter
                         lbl_count.Content = $"{listview_students.Items.Count}/{(ids.last - ids.first + 1)}";
                     });
                 }));
-                await WaitList(tasks, 30);
+                await WaitList(tasks, 10);
             }
 
             await Task.WhenAll(tasks);
@@ -219,21 +189,6 @@ namespace HUGradesGetter
             }
 
         }
-
-        private class ThreadParameter
-        {
-            public int Start;
-            public int End;
-            public int Id;
-
-            public ThreadParameter(int _start, int _end, int _Id)
-            {
-                Start = _start;
-                End = _end;
-                Id = _Id;
-            }
-        }
-
         private void cmb_sort_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (listview_students.Items.Count == 0)
@@ -275,8 +230,15 @@ namespace HUGradesGetter
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            File.WriteAllText("export.txt", JsonConvert.SerializeObject(Students, Formatting.Indented));
+            IEnumerable<string> students = Students.OrderByDescending(x => x.TotalGrades).Select(x => x?.Name + "\t" + x?.TotalGrades);
+            //File.WriteAllText("export.txt", JsonConvert.SerializeObject(Students, Formatting.Indented));
+            File.WriteAllLines("export.txt", students);
             await this.ShowMessageAsync("Success", "Exported to export.txt within the application folder!");
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            StartProcess();
         }
     }
 }
